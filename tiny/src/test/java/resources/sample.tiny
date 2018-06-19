@@ -1,0 +1,7 @@
+simple_call(1, 'asdasd', simple_call2(dst))
+$dd = 123
+$ss = 'asdasdasd'
+cc = llff
+if (ddfff) {
+    print 'dasdasda'
+}
