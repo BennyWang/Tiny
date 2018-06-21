@@ -2,7 +2,9 @@ package com.benny.library.tiny.ast;
 
 import com.benny.library.tiny.RuntimeContext;
 
-public class VarExpression implements Expression {
+import java.io.Serializable;
+
+public class VarExpression implements Expression, Serializable {
     private String name;
 
     public VarExpression(String name) {

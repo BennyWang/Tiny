@@ -10,6 +10,8 @@ public class Result {
 
     public Result(int position, Object... results) {
         this.position = position;
-        this.results.addAll(Arrays.asList(results));
+        if (results != null) {
+            this.results.addAll(Arrays.asList(results));
+        }
     }
 }

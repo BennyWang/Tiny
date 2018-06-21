@@ -1,4 +1,17 @@
+buildscript {
+    ext.kotlin_version = '1.2.30' // Required for Kotlin integration
+    repositories {
+        jcenter()
+    }
+    dependencies {
+        //classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+        classpath 'me.tatarka:gradle-retrolambda:3.7.0'
+    }
+}
+
+//apply plugin: 'kotlin'
 apply plugin: 'java'
+apply plugin: 'me.tatarka.retrolambda'
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
@@ -6,5 +19,5 @@ dependencies {
     testImplementation 'junit:junit:4.12'
 }
 
-sourceCompatibility = "1.7"
-targetCompatibility = "1.7"
+sourceCompatibility = JavaVersion.VERSION_1_8
+targetCompatibility = JavaVersion.VERSION_1_8

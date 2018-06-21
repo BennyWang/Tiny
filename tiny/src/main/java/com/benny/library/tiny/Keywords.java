@@ -41,6 +41,7 @@ public class Keywords {
         KEYWORDS.add("or");
         KEYWORDS.add("not");
         KEYWORDS.add("if");
+        KEYWORDS.add("else");
         KEYWORDS.add("for");
         KEYWORDS.add("in");
         KEYWORDS.add("while");

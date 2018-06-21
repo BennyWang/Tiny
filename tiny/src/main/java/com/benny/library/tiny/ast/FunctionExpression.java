@@ -2,29 +2,32 @@ package com.benny.library.tiny.ast;
 
 import com.benny.library.tiny.RuntimeContext;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class FunctionExpression implements Expression {
+public class FunctionExpression implements Expression, Serializable {
     private String function;
     private List<Object> args = new ArrayList<>();
 
     public FunctionExpression(List<Object> results) {
         function = (String) results.get(0);
-        for (int i = 2; i < results.size() - 1; ++i) {
+        for (int i = 1; i < results.size(); ++i) {
             args.add(results.get(i));
         }
     }
 
     @Override
     public Object eval(RuntimeContext context) {
-        for (int i = 0; i < args.size(); ++i) {
-            Object arg = args.get(i);
+        List<Object> realArgs = new ArrayList<>();
+        for (Object arg : args) {
             if (arg instanceof Expression) {
-                args.set(i, ((Expression) arg).eval(context));
+                realArgs.add(((Expression) arg).eval(context));
+            }
+            else {
+                realArgs.add(arg);
             }
         }
-
-        return context.invoke(function, args);
+        return context.invoke(function, realArgs);
     }
 }

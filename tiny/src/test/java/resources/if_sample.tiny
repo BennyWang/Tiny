@@ -1,0 +1,7 @@
+if (3 < 2){
+    print("3 < 2 is true")
+}
+else
+{
+    print("3 < 2 is false")
+}

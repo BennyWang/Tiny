@@ -15,11 +15,13 @@ public class TagUnit implements Unit {
 
     @Override
     public Result parse(List<Token> tokens, int position) {
-        Token token = tokens.get(position);
-        if (token.type == type) {
-            return new Result(position + 1, token.value);
+        if (position < tokens.size()) {
+            Token token = tokens.get(position);
+            System.out.println("Type " + type + " parse " + token);
+            if (token.type == type) {
+                return new Result(position + 1, token.value);
+            }
         }
-
         return null;
     }
 }

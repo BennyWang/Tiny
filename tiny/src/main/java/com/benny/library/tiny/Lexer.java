@@ -24,6 +24,9 @@ public class Lexer {
 
         StreamTokenizer tokenizer = new StreamTokenizer(new InputStreamReader(stream));
         tokenizer.eolIsSignificant(true);
+        tokenizer.ordinaryChar('.');
+        tokenizer.ordinaryChar('/');
+        tokenizer.ordinaryChar(' ');
         tokenizer.wordChars('$', '$');
         tokenizer.wordChars('\'', '\'');
         tokenizer.wordChars('"', '"');
@@ -37,8 +40,19 @@ public class Lexer {
 
             switch (token) {
                 case StreamTokenizer.TT_EOL:
-                    tokens.add(new Token("", TokenType.SEPARATOR));
                     ++lineNumber;
+                    Token lastToken = tokens.get(tokens.size() - 1);
+                    if ("{".equals(lastToken.value) || lastToken.type == TokenType.SEPARATOR) {
+                        break;
+                    }
+
+                    int nextToken = tokenizer.nextToken();
+                    tokenizer.pushBack();
+                    if (nextToken == '}' || nextToken == '{') {
+                        break;
+                    }
+
+                    tokens.add(new Token("", TokenType.SEPARATOR));
                     break;
                 case StreamTokenizer.TT_NUMBER:
                     tokens.add(new Token(nValue, TokenType.NUMBER));
@@ -47,14 +61,17 @@ public class Lexer {
                     if (Keywords.isKeyword(sValue)) {
                         tokens.add(new Token(sValue, TokenType.RESERVED));
                     }
-                    else if (sValue.startsWith("'") && sValue.endsWith("'")) {
-                        tokens.add(new Token(sValue.substring(1, sValue.length() - 1), TokenType.STRING));
+                    else if (sValue.startsWith("'") || sValue.startsWith("\"")) {
+                        String str = readString(sValue, tokenizer);
+                        if (str != null) {
+                            tokens.add(new Token(str, TokenType.STRING));
+                        }
+                        else {
+                            throw new SyntaxException("Unknown keyword: " + sValue + " in line " + lineNumber);
+                        }
                     }
-                    else if (sValue.startsWith("\"") && sValue.endsWith("\"")) {
-                        tokens.add(new Token(sValue.substring(1, sValue.length() - 1), TokenType.STRING));
-                    }
-                    else if (!sValue.contains("'") && !sValue.contains("\"")) {
-                        int nextToken = tokenizer.nextToken();
+                    else {
+                        nextToken = tokenizer.nextToken();
                         tokenizer.pushBack();
                         if (nextToken == '(') {
                             tokens.add(new Token(sValue, TokenType.FUNCTION));
@@ -63,31 +80,79 @@ public class Lexer {
                             tokens.add(new Token(sValue, TokenType.ID));
                         }
                     }
-                    else {
-                        throw new SyntaxException("Unknown keyword: " + sValue + " in line " + lineNumber);
-                    }
                     break;
                 default:
-                    String value = String.valueOf((char) token);
-                    if (Keywords.isAmbiguous(token)) {
-                        String word = value + (char) tokenizer.nextToken();
-                        if (Keywords.isKeyword(word)) {
-                            tokens.add(new Token(word, TokenType.RESERVED));
-                            break;
+                    if (token != ' ') {
+                        String value = String.valueOf((char) token);
+                        if (Keywords.isAmbiguous(token)) {
+                            String word = value + (char) tokenizer.nextToken();
+                            if (Keywords.isKeyword(word)) {
+                                tokens.add(new Token(word, TokenType.RESERVED));
+                                break;
+                            }
+                            tokenizer.pushBack();
                         }
-                        tokenizer.pushBack();
-                    }
 
-                    if (Keywords.isKeyword(value)) {
-                        tokens.add(new Token(value, TokenType.RESERVED));
-                    }
-                    else {
-                        throw new SyntaxException("Illegal character: " + (char)token + " in line " + lineNumber);
+                        if (Keywords.isKeyword(value)) {
+                            tokens.add(new Token(value, TokenType.RESERVED));
+                        } else {
+                            throw new SyntaxException("Illegal character: " + (char) token + " in line " + lineNumber);
+                        }
                     }
                     break;
             }
         }
 
+        removeEndSeparator(tokens);
         return tokens;
+    }
+
+    private String readString(String start, StreamTokenizer tokenizer) throws Exception {
+        if ((start.startsWith("'") && start.endsWith("'")) || (start.startsWith("\"") && start.endsWith("\"")) ) {
+            if (start.length() > 1) {
+                return start.substring(1, start.length() - 1);
+            }
+        }
+
+        String quote = start.substring(0, 1);
+        StringBuilder builder = new StringBuilder();
+        builder.append(start.substring(1));
+        int token;
+        while ((token = tokenizer.nextToken()) != StreamTokenizer.TT_EOF) {
+            if (token == StreamTokenizer.TT_EOL) {
+                builder.append('\n');
+            }
+            else if (token == StreamTokenizer.TT_NUMBER) {
+                builder.append(tokenizer.nval);
+            }
+            else if (token == StreamTokenizer.TT_WORD) {
+                String sValue = tokenizer.sval;
+                if (sValue.endsWith(quote)) {
+                    builder.append(sValue.substring(0, sValue.length() - 1));
+                    return builder.toString();
+                }
+                else {
+                    builder.append(tokenizer.sval);
+                }
+            }
+            else {
+                if (token == quote.charAt(0)) {
+                    return builder.toString();
+                }
+                builder.append((char) token);
+            }
+        }
+
+        return null;
+    }
+
+    private void removeEndSeparator(List<Token> tokens) {
+        for (int i = tokens.size() - 1; i >= 0; --i) {
+            Token token = tokens.get(i);
+            if (token.type != TokenType.SEPARATOR) {
+                return;
+            }
+            tokens.remove(i);
+        }
     }
 }

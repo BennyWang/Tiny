@@ -1,0 +1,10 @@
+$i = 1 + 2 * (3 + 5 / 2)
+if ($i > 100) {
+    $ = 5
+}
+while ($i > 0) {
+    $i = $i - 1
+    print("$i is ".$i)
+}
+ddd = 3 > 2 ? "I'm right" : "fuck"
+fff = addd ?: 'ddd'

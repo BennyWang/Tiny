@@ -12,6 +12,10 @@ public class Combinator {
         return new AlternateUnit(units);
     }
 
+    public static Unit recurse(Unit unit, Unit seprator) {
+        return new RecursiveUnit(unit, seprator);
+    }
+
     public static Unit process(Unit unit, Processor processor) {
         return new ProcessUnit(unit, processor);
     }
